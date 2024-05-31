@@ -1,0 +1,10 @@
+(From src/generated folder)
+
+Lexer
+java -jar ../../tools/jflex-full-1.9.1.jar -d . ../../spec/lexer.flex
+
+Parser
+java -jar ../../tools/java-cup-11b.jar -interface -parser Parser ../../spec/parser.cup
+
+Intermediate Code Parser
+java -jar ../../tools/java-cup-11b.jar -interface -parser IntermediateCodeParser ../../spec/intermediate_code_parser.cup

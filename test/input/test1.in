@@ -1,0 +1,7 @@
+const int x = 0;
+//x = 3;
+bool a1;
+a1 = true && false;
+int b = 4 % 3;
+int a=1+2-b;
+int res = 4*3+1*(9/8);

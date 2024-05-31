@@ -1,0 +1,90 @@
+package generated;
+import java_cup.runtime.*;
+import generation_schemes.AssemblyGenerator;
+import generation_schemes.Quadruple;
+
+parser code
+{:
+    AssemblyGenerator assemblyGenerator = new AssemblyGenerator();
+
+    public String getAssemblyCode() {
+        return assemblyGenerator.toString();
+    }
+:};
+
+terminal TIMES, PLUS, MINUS, DIV, IDIV, POW, MOD, ASSIGN, INC, DEC;
+terminal COLON, SEMICOLON, BRACKET_LEFT, BRACKET_RIGHT, PARENT_LEFT, PARENT_RIGHT;
+terminal AND, NOT, OR;
+terminal LESS_THAN, MORE_THAN, LESS_OR_EQ, MORE_OR_EQ, EQUALS, DIFFERENT_THAN;
+terminal INT, FLOAT, DOUBLE, CHAR, STRING, BOOL, CONST;
+terminal IDENTIFIER, BOOLEAN_LITERAL, CHAR_LITERAL, STRING_LITERAL, INTEGER_LITERAL, DECIMAL_LITERAL;
+
+non terminal statement, statements, expression, declaration, assignment, operand, data_type, value;
+
+precedence left OR;
+precedence left AND;
+precedence left EQUALS, DIFFERENT_THAN, LESS_THAN, MORE_THAN, LESS_OR_EQ, MORE_OR_EQ;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV, IDIV;
+precedence right NOT;
+
+start with statements;
+
+statements ::= statement statements
+             | /* empty */ {: :}
+             ;
+
+statement ::= declaration:d SEMICOLON{: :}
+            | assignment:a SEMICOLON{: :}
+            ;
+
+
+declaration ::= data_type:t IDENTIFIER:i {:
+                assemblyGenerator.addDeclaration(t.toString(), i.toString());
+            :}
+            | CONST data_type:t IDENTIFIER:i {:
+                assemblyGenerator.addDeclaration(t.toString(), i.toString());
+            :}
+            ;
+
+assignment ::= IDENTIFIER:i ASSIGN value:v1 operand:op value:v2 {:
+                assemblyGenerator.addAssignment(i.toString(), op.toString(), v1.toString(), v2.toString());
+            :}
+            | IDENTIFIER:i ASSIGN value:v {:
+                assemblyGenerator.addAssignment(i.toString(), null, v.toString(), null);
+            :}
+            | IDENTIFIER:i ASSIGN NOT:op value:v {:
+                assemblyGenerator.addAssignment(i.toString(), op.toString(), v.toString(), null);
+            :}
+            ;
+
+operand ::= TIMES:op {: RESULT = op.toString(); :}
+          | PLUS:op {: RESULT = op.toString(); :}
+          | MINUS:op {: RESULT = op.toString(); :}
+          | DIV:op {: RESULT = op.toString(); :}
+          | IDIV:op {: RESULT = op.toString(); :}
+          | POW:op {: RESULT = op.toString(); :}
+          | MOD:op {: RESULT = op.toString(); :}
+          | ASSIGN:op {: RESULT = op.toString(); :}
+          | INC:op {: RESULT = op.toString(); :}
+          | DEC:op {: RESULT = op.toString(); :}
+          | AND:op {: RESULT = op.toString(); :}
+          | NOT:op {: RESULT = op.toString(); :}
+          | OR:op {: RESULT = op.toString(); :}
+          | LESS_THAN:op {: RESULT = op.toString(); :}
+          | MORE_THAN:op {: RESULT = op.toString(); :}
+          | LESS_OR_EQ:op {: RESULT = op.toString(); :}
+          | MORE_OR_EQ:op {: RESULT = op.toString(); :}
+          | EQUALS:op {: RESULT = op.toString(); :}
+          | DIFFERENT_THAN:op {: RESULT = op.toString(); :}
+          ;
+
+data_type ::= INT:t {: RESULT = t; :} | DOUBLE:t {: RESULT = t; :} | CHAR:t {: RESULT = t; :} | STRING:t {: RESULT = t; :} | BOOL:t {: RESULT = t; :};
+
+value ::= INTEGER_LITERAL: v {: RESULT =  v.toString(); :}
+        | DECIMAL_LITERAL: v {: RESULT =  v.toString(); :}
+        | BOOLEAN_LITERAL: v {: RESULT =  v.toString(); :}
+        | CHAR_LITERAL: v {: RESULT =  v.toString(); :}
+        | STRING_LITERAL: v {: RESULT =   v.toString(); :}
+        | IDENTIFIER: v {: RESULT = v.toString(); :}
+        ;

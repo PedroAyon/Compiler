@@ -1,0 +1,97 @@
+package generated;
+import java_cup.runtime.*;
+import semantics.Semantics;
+import semantics.SemanticException;
+import generation_schemes.IntermediateCode;
+
+parser code
+{:
+    public Semantics semantics = new Semantics();
+    private IntermediateCode intermediateCode = new IntermediateCode();
+
+    public String getIntermediateCode() {
+        return intermediateCode.toString();
+    }
+:};
+
+terminal TIMES, PLUS, MINUS, DIV, IDIV, POW, MOD, ASSIGN, INC, DEC;
+terminal COLON, SEMICOLON, BRACKET_LEFT, BRACKET_RIGHT, PARENT_LEFT, PARENT_RIGHT;
+terminal AND, NOT, OR;
+terminal LESS_THAN, MORE_THAN, LESS_OR_EQ, MORE_OR_EQ, EQUALS, DIFFERENT_THAN;
+terminal INT, FLOAT, DOUBLE, CHAR, STRING, BOOL, CONST;
+terminal FOR, WHILE, IF, ELSE;
+terminal IDENTIFIER, BOOLEAN_LITERAL, CHAR_LITERAL, STRING_LITERAL, INTEGER_LITERAL, DECIMAL_LITERAL;
+
+non terminal statement, statements, expression, declaration, assignment, data_type, value;
+
+precedence left OR;
+precedence left AND;
+precedence left EQUALS, DIFFERENT_THAN, LESS_THAN, MORE_THAN, LESS_OR_EQ, MORE_OR_EQ;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV, IDIV, MOD;
+precedence right NOT;
+
+start with statements;
+
+statements ::= statement statements
+             | /* empty */ {: :}
+             ;
+
+statement ::= declaration:d SEMICOLON{: :}
+            | assignment:a SEMICOLON{: :}
+            ;
+
+
+declaration ::= data_type:t IDENTIFIER:i {:
+                semantics.addIdentifier(i.toString(), t.toString(), "variable");
+                intermediateCode.addEmptyDeclaration(t.toString(), i.toString(), false);
+            :}
+            | data_type:t IDENTIFIER:i ASSIGN expression:e {:
+                semantics.addIdentifier(i.toString(), t.toString(), "variable");
+                semantics.validateExpressionMatchesIdentifierDataType(i.toString(), e.toString());
+                intermediateCode.addDeclaration(t.toString(), "" + i + " = " + e.toString(), false);
+            :}
+            | CONST data_type:t IDENTIFIER:i ASSIGN expression:e {:
+                semantics.addIdentifier(i.toString(), t.toString(), "constant");
+                intermediateCode.addDeclaration(t.toString(), "" + i + " = " + e.toString(), true);
+            :}
+            ;
+
+assignment ::= IDENTIFIER:i ASSIGN expression:e {:
+                semantics.validateIdentifierExist(i.toString());
+                semantics.validateExpressionMatchesIdentifierDataType(i.toString(), e.toString());
+                semantics.validateIdentifierIsNotConstant(i.toString());
+                intermediateCode.addAssignation(semantics.getIdentifier(i.toString()).getDataType(), "" + i + " = " + e);
+            :};
+
+expression ::= expression:e1 OR expression:e2 {: RESULT = "" + e1 + " || " + e2; :}
+        | expression:e1 AND expression:e2 {: RESULT = "" + e1 + " && " + e2; :}
+        | NOT expression:e {: RESULT = "! " + e; :}
+        | expression:e1 EQUALS expression:e2 {: RESULT = "" + e1 + " == " + e2; :}
+        | expression:e1 DIFFERENT_THAN expression:e2 {: RESULT = "" + e1 + " != " + e2; :}
+        | expression:e1 LESS_THAN expression:e2 {: RESULT = "" + e1 + " < " + e2; :}
+        | expression:e1 MORE_THAN expression:e2 {: RESULT = "" + e1 + " > " + e2; :}
+        | expression:e1 LESS_OR_EQ expression:e2 {: RESULT = "" + e1 + " <= " + e2; :}
+        | expression:e1 MORE_OR_EQ expression:e2 {: RESULT = "" + e1 + " >= " + e2; :}
+        | expression:e1 PLUS expression:e2 {: RESULT = "" + e1 + " + " + e2; :}
+        | expression:e1 MINUS expression:e2 {: RESULT = "" + e1 + " - " + e2; :}
+        | expression:e1 TIMES expression:e2 {: RESULT = "" + e1 + " * " + e2; :}
+        | expression:e1 DIV expression:e2 {: RESULT = "" + e1 + " / " + e2; :}
+        | expression:e1 IDIV expression:e2 {: RESULT = "" + e1 + " // " + e2; :}
+        | expression:e1 MOD expression:e2 {: RESULT = "" + e1 + " % " + e2; :}
+        | PARENT_LEFT expression:e PARENT_RIGHT {: RESULT = "( " + e + " )"; :}
+        | value:v {: RESULT = v.toString(); :}
+        | IDENTIFIER:i {:
+            RESULT = i.toString();
+            semantics.validateIdentifierExist(i.toString());
+        :}
+        ;
+
+data_type ::= INT:t {: RESULT = t; :} | DOUBLE:t {: RESULT = t; :} | CHAR:t {: RESULT = t; :} | STRING:t {: RESULT = t; :} | BOOL:t {: RESULT = t; :};
+
+value ::= INTEGER_LITERAL: v {: RESULT =  v.toString(); :}
+        | DECIMAL_LITERAL: v {: RESULT =  v.toString(); :}
+        | BOOLEAN_LITERAL: v {: RESULT =  v.toString(); :}
+        | CHAR_LITERAL: v {: RESULT =  v.toString(); :}
+        | STRING_LITERAL: v {: RESULT =   v.toString(); :}
+        ;
